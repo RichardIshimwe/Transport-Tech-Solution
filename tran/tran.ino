@@ -39,38 +39,43 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 //      lcd.begin(20, 4);
 //   } 
 //----------------------------------------------------------------setup for gps----------------------------------------------------------------------------
-void setup() {
-  // Start the serial communication
-  Serial.begin(9600);
-  gpsSerial.begin(9600);
-  lcd.begin(20, 4);
-  analogWrite(6, Contrast);
-
-  // Wait for GPS module to initialize
-  delay(1000);
-
-  // Check if GPS module is connected
-  if (!gpsSerial) {
-    Serial.println("GPS module not connected. Please check the wiring.");
-  }
-}
-//----------------------------------------------------------------setup for nfc and gps--------------------------------------------------------------------
 // void setup() {
+//   // Start the serial communication
+//   Serial.begin(9600);
+//   gpsSerial.begin(9600);
 //   lcd.begin(20, 4);
 //   analogWrite(6, Contrast);
-//   gpsSerial.begin(9600);
-//   nfc.begin();
-//   uint32_t versiondata = nfc.getFirmwareVersion();
-//   delay(1000);
-//   if (!versiondata) {
-//     while (1);
-//   }
-//     if (!gpsSerial) {
-//     lcd.print("GPS module not connected. Please check the wiring.");
-//   }
 
-//   nfc.SAMConfig();
+//   // Wait for GPS module to initialize
+//   delay(1000);
+
+//   // Check if GPS module is connected
+//   if (!gpsSerial) {
+//     lcd.println("GPS module not connected. Please check the wiring.");
+//   }
 // }
+//----------------------------------------------------------------main loop--------------------------------------------------------------------------------
+void loop(){
+  //  keypadChange();
+  currentPostion();
+}
+//----------------------------------------------------------------setup for nfc and gps--------------------------------------------------------------------
+void setup() {
+  lcd.begin(20, 4);
+  analogWrite(6, Contrast);
+  gpsSerial.begin(9600);
+  nfc.begin();
+  uint32_t versiondata = nfc.getFirmwareVersion();
+  delay(1000);
+  if (!versiondata) {
+    while (1);
+  }
+    if (!gpsSerial) {
+    lcd.print("GPS module not connected. Please check the wiring.");
+  }
+
+  nfc.SAMConfig();
+}
 // -------------------------------------------------------------------------lcd display-------------------------------------------------------------------
 
 //     void loop()
@@ -86,45 +91,57 @@ void setup() {
 //  }
 // ----------------------------------------------------------------------------keypad---------------------------------------------------------------------
 
-void loop() {
-    char key = keypad.getKey();
-    lcd.setCursor(0, 0);
-    lcd.print("All inputs: ");
-  if (key) {
-    // Handle keypad input here
-    keypadInput += key;
-      lcd.setCursor(0, 1);
-      lcd.print("Keypad input: ");
-      // lcd.print(key);
-      lcd.print(keypadInput);
-    }
-  }
+// void loop() {
+//     char key = keypad.getKey();
+//     lcd.setCursor(0, 0);
+//     lcd.print("All inputs: ");
+//   if (key) {
+//     // Handle keypad input here
+//     keypadInput += key;
+//       lcd.setCursor(0, 1);
+//       lcd.print("Keypad input: ");
+//       // lcd.print(key);
+//       lcd.print(keypadInput);
+//     }
+//   }
+  // ++++++++++++++++++++++++++++++++keypad function++++++++++++++++++++++++++++++++
+  // void keypadChange() {
+  //   char key = keypad.getKey();
+  // if (key) {
+  //     keypadInput += key;
+  //     lcd.setCursor(0, 3);
+  //     lcd.print("Keypad input:");
+  //     // lcd.print(key);
+  //     lcd.print(keypadInput);
+  //     delay(500);
+  //   }
+  // }
 
 // -------------------------------------------------------------------------nfc card reader------------------------------------------------------------------
-// void loop() {
-//     uint8_t success;
-//     uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };
-//     uint8_t uidLength;
+void readCard() {
+    uint8_t success;
+    uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };
+    uint8_t uidLength;
 
-//     success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
+    success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
 
-//     if (success) {
-//       lcd.setCursor(0, 2);
-//       lcd.print("Card found: ");
+    if (success) {
+      lcd.setCursor(0, 2);
+      lcd.print("Card found: ");
 
-//       String uidString = "";
+      String uidString = "";
 
-//       for (uint8_t i = 0; i < uidLength; i++) {
-//         if (uid[i] < 0x10) {
-//           uidString += "0";
-//         }
-//         uidString += String(uid[i], HEX);
-//       }
+      for (uint8_t i = 0; i < uidLength; i++) {
+        if (uid[i] < 0x10) {
+          uidString += "0";
+        }
+        uidString += String(uid[i], HEX);
+      }
 
-//       lcd.print(uidString);
-//     }
-//     delay(500);
-// }
+      lcd.print(uidString);
+    }
+    delay(500);
+}
 // ---------------------------------------------------gps tracker---------------------------------------------------------------
 // void loop(){
 //     while (gpsSerial.available() > 0) {
@@ -143,3 +160,32 @@ void loop() {
 //       }
 //     }
 // }}
+// -----------------------------gps function and ---------------------------
+void currentPostion(){
+      // keypadChange();
+      // readCard();
+
+static unsigned long previousMillis = 0;
+const unsigned long interval = 1000;
+
+unsigned long currentMillis = millis();
+if(currentMillis - previousMillis >= interval){
+
+    while (gpsSerial.available() > 0) {
+    if (gps.encode(gpsSerial.read())) {
+      // If valid data is received, print the GPS information
+      previousMillis = currentMillis;
+      if (gps.location.isValid()) {
+        lcd.setCursor(0, 0);
+        lcd.print("Latitude: ");
+        lcd.print(gps.location.lat(), 6);
+        lcd.setCursor(0, 1);
+        lcd.print("Longitude: ");
+        lcd.print(gps.location.lng(), 6);
+        lcd.setCursor(0, 2);
+        lcd.print("Altitude: ");
+        lcd.print(gps.altitude.meters());
+      }}}
+      // keypadChange();
+}
+}

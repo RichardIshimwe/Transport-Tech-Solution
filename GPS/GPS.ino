@@ -18,6 +18,7 @@ void setup() {
   if (!gpsSerial) {
     Serial.println("GPS module not connected. Please check the wiring.");
   }
+  Serial.println("GPS module connecting .............");
 }
 
 void loop() {
