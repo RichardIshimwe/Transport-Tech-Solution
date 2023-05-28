@@ -24,7 +24,7 @@
 // String cardId = "";
 
 // Adafruit_PN532 nfc(SDA_PIN, SCL_PIN); // Create an instance of the PN532 module
-int Contrast=140;
+int Contrast=40;
 
 // void setup(void) {
 //   analogWrite(6,Contrast);
@@ -128,35 +128,21 @@ void setup() {
   nfc.SAMConfig();
 }
 
+// void loop() {
+//     char key = keypad.getKey();
+//     lcd.setCursor(0, 0);
+//     lcd.print("All inputs: ");
+//   if (key) {
+//     // Handle keypad input here
+//     keypadInput += key;
+//       lcd.setCursor(0, 1);
+//       lcd.print("Keypad input: ");
+//       lcd.print(keypadInput);
+//     }
+//   }
+
+
 void loop() {
-  detectKeypadInput();
-  detectCard();
-}
-
-void detectKeypadInput() {
-  char key = keypad.getKey();
-
-  if (key) {
-    lcd.setCursor(0, 1);
-    lcd.print("All inputs: ");
-    lcd.print(key);
-
-    // Handle keypad input here
-    keypadInput += key;
-
-    if (keypadInput.length() >= 4) {
-      lcd.setCursor(0, 0);
-      lcd.print("Keypad input: ");
-      lcd.print(keypadInput);
-
-      keypadInput = "";
-      currentState = STATE_WAITING_FOR_CARD;
-    }
-  }
-}
-
-void detectCard() {
-  if (currentState == STATE_WAITING_FOR_CARD) {
     uint8_t success;
     uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };
     uint8_t uidLength;
@@ -179,7 +165,5 @@ void detectCard() {
       lcd.print(uidString);
 
       // Transition to the next state
-      currentState = STATE_WAITING_FOR_KEY;
     }
-  }
 }
