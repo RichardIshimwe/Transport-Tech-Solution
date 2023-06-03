@@ -17,6 +17,9 @@ TinyGPSPlus gps;
 String keypadInput;
 int select = 0;
 bool page1 = true;
+int redLed = 34;
+int greenLed = 36;
+int blueLed = 38;
 
 const byte ROWS = 4;
 const byte COLS = 4;
@@ -64,6 +67,9 @@ void setup() {
   gpsSerial.begin(9600);
   Serial.begin(9600);
   nfc.begin();
+  pinMode(redLed, OUTPUT);
+  pinMode(greenLed, OUTPUT);
+  pinMode(blueLed, OUTPUT);
   uint32_t versiondata = nfc.getFirmwareVersion();
   myLogo();
   delay(3000);
@@ -85,6 +91,7 @@ void loop() {
   // lcdDisplay();
   // makeChoice();
   keypadChange();
+  // testLed();
 }
 //----------------------------------------------------------------screens---------------------------------------------------------------------------------
 //  +++++++++++++++logo+++++++++++++++++
@@ -148,7 +155,7 @@ int selectedItem(int selected) {
 //  +++++++++++++++choice+++++++++++++++++
 void driverPage() {
   lcd.clear();
-    lcd.setCursor(0, 0);
+  lcd.setCursor(0, 0);
   lcd.print("tap card to proceed");
   readCard();
 }
@@ -175,6 +182,36 @@ void lcdDisplay() {
   lcd.setCursor(0, 3);
   lcd.print("Subscribe");
 }
+// ----------------------------------------------------------------------------test leds------------------------------------------------------------------
+void redOn(){
+  digitalWrite(redLed, HIGH);
+  digitalWrite(blueLed, LOW);
+  digitalWrite(greenLed, LOW);
+  delay(1000);
+}
+void blueOn(){
+  digitalWrite(redLed, LOW);
+  digitalWrite(blueLed, HIGH);
+  digitalWrite(greenLed, LOW);
+}
+void greenOn(){
+  digitalWrite(redLed, LOW);
+  digitalWrite(blueLed, LOW);
+  digitalWrite(greenLed, HIGH);
+}
+void allLedOff(){
+  digitalWrite(redLed, LOW);
+  digitalWrite(blueLed, LOW);
+  digitalWrite(greenLed, LOW);
+}
+void testLed(){
+  redOn();
+  delay(1000);
+  blueOn();
+  delay(1000);
+  greenOn();
+  delay(1000);
+}
 // ----------------------------------------------------------------------------keypad---------------------------------------------------------------------
 
 // void loop() {
@@ -193,7 +230,7 @@ void lcdDisplay() {
 // ++++++++++++++++++++++++++++++++keypad function++++++++++++++++++++++++++++++++
 void keypadChange() {
   char key = keypad.getKey();
-
+allLedOff();
   if (page1 == true) {
     selectedItem(select);
   }
@@ -201,7 +238,6 @@ void keypadChange() {
     page1 = false;
     if (select == 1) {
       adminPage();
-      select == 12;
     } else if (select == 2) {
       driverPage();
     } else if (select == 3) {
@@ -209,21 +245,26 @@ void keypadChange() {
     }
   };
   if(key == 'D'){
-    lcd.clear();
     page1 = true;
   }
   if (key) {
-    if (select < 0) select = 1;
-    if (select > 3) select = 1;
+      blueOn();
+    if (select < 0 ) select = 1;
+    if (select > 3 ) select = 1;
     keypadInput += key;
-    if (key == 'A') select--;
-    if (key == 'B') select++;
-    delay(50);
+    if (key == 'A' && page1 == true) {
+      select--;
+      }
+    if (key == 'B' && page1 == true) {
+      select++;
+      }
+    delay(150);
   }
 }
 
 // -------------------------------------------------------------------------nfc card reader------------------------------------------------------------------
 void readCard() {
+  while(page1 == false){
   uint8_t success;
   uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };
   uint8_t uidLength;
@@ -244,9 +285,10 @@ void readCard() {
     }
 lcd.setCursor(0, 2);
 lcd.print(uidString);
+checkDriverCard(uidString);
   }
-  delay(500);
-}
+  delay(1000);
+}}
 // ---------------------------------------------------gps tracker---------------------------------------------------------------
 // void loop(){
 //     while (gpsSerial.available() > 0) {
@@ -296,3 +338,20 @@ void currentPostion() {
     // keypadChange();
   }
 }
+// -------------------------------------------------making http requests-----------------------------------
+ void checkDriverCard(String driverCard){
+   allLedOff();
+   if(driverCard != "198e5a14"){
+       return redOn();
+   }
+   greenOn();
+ }
+
+
+
+
+
+
+
+
+
